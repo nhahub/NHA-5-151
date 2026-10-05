@@ -5,8 +5,8 @@ Track, Round 2.
 
 This repository contains data exploration notebooks and starter utilities for
 land-cover classification with the EuroSAT dataset. It includes RGB and
-multispectral dataset download support, class-stratified PyTorch data loaders,
-and CNN/ResNet-18 model definitions.
+multispectral dataset download support, image preprocessing, class-stratified
+PyTorch data loaders, and CNN/ResNet-18 model definitions.
 
 > **Project status:** The repository currently provides EuroSAT download,
 > exploration, and model-building components. The Sentinel-2 AOI definitions
@@ -19,6 +19,7 @@ and CNN/ResNet-18 model definitions.
 | --- | --- |
 | `src/aoi_config.py` | Example Egypt areas of interest, Sentinel-2 band groups, land-cover labels, and scene-query preferences |
 | `src/download_eurosat.py` | Download and extract the EuroSAT RGB or multispectral archive |
+| `src/preprocessing.py` | Resize and normalize RGB or multispectral images into `.npy` files |
 | `src/dataset.py` | ImageFolder-based train, validation, and test data loaders |
 | `src/model.py` | `SmallCNN` and `resnet18` model builders |
 | `notebooks/initial_inspection.ipynb` | Initial dataset inspection notebook |
@@ -36,7 +37,8 @@ and CNN/ResNet-18 model definitions.
 
 The multispectral exploration notebook may also require `rasterio` to read the
 GeoTIFF images. Install it in your environment if you run the notebook cells
-that inspect multispectral image pixels.
+that inspect multispectral image pixels. `rasterio` is also needed when
+preprocessing GeoTIFF files; it is optional for JPEG and PNG input.
 
 ## Setup
 
@@ -98,6 +100,19 @@ The default archives are hosted on
 [Zenodo record 7711810](https://zenodo.org/records/7711810). The downloader
 stores each ZIP beside its extraction directory. Downloaded data is not
 included in Git; the `.gitignore` excludes raw, interim, and processed data.
+
+## Preprocess images
+
+Convert the supported JPEG, PNG, and GeoTIFF files under an input directory to
+resized, normalized `.npy` arrays while preserving their folder structure:
+
+```bash
+python src/preprocessing.py --input data/raw --output data/processed --size 64 --norm scale
+```
+
+Use `--norm minmax` to stretch each image band to 0–1, or `--correction dos` to
+apply simple dark-object subtraction before resizing and normalization. The
+default scaling uses 255 for 8-bit images and 10,000 for Sentinel-2 reflectance.
 
 ### Expected image-folder layout
 

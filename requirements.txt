@@ -4,5 +4,6 @@ matplotlib
 seaborn
 scikit-learn
 pillow
+opencv-python
 torch
 torchvision
