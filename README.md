@@ -21,6 +21,7 @@ PyTorch data loaders, and CNN/ResNet-18 model definitions.
 | `src/download_eurosat.py` | Download and extract the EuroSAT RGB or multispectral archive |
 | `src/preprocessing.py` | Resize and normalize RGB or multispectral images into `.npy` files |
 | `src/dataset.py` | ImageFolder-based train, validation, and test data loaders |
+| `src/split_data.py` | Run and validate the stratified split; write CSV manifests |
 | `src/model.py` | `SmallCNN` and `resnet18` model builders |
 | `notebooks/initial_inspection.ipynb` | Initial dataset inspection notebook |
 | `notebooks/01_data_exploration_eurosat_ms.ipynb` | Multispectral exploration, spectral signatures, and optional NDVI analysis |
@@ -154,6 +155,19 @@ from the red (`B04`) and near-infrared (`B08`) bands when the notebook's input
 data supports that calculation.
 
 ## Python utilities
+
+Run the reproducible 70/15/15 split summary and validation from the repository
+root:
+
+```bash
+python src/split_data.py
+```
+
+The script writes train, validation, and test CSV manifests under
+`data/processed/splits/seed_42/`; image paths are relative to the selected
+ImageFolder root. It preserves the raw images and checks class balance and
+split overlap. See [`docs/walaa_milestone1.md`](docs/walaa_milestone1.md) for
+the measured class counts and contribution details.
 
 Create train, validation, and test loaders from an ImageFolder-compatible
 dataset:
