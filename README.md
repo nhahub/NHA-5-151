@@ -23,6 +23,9 @@ PyTorch data loaders, and CNN/ResNet-18 model definitions.
 | `src/dataset.py` | ImageFolder-based train, validation, and test data loaders |
 | `src/split_data.py` | Run and validate the stratified split; write CSV manifests |
 | `src/model.py` | `SmallCNN` and `resnet18` model builders |
+| `src/tracking.py` | Log training parameters, metrics, and artifacts to local MLflow |
+| `train.py` | Train and evaluate the EuroSAT image classifier |
+| `API_DESIGN.md` | Proposed prediction API endpoints and payload formats |
 | `notebooks/initial_inspection.ipynb` | Initial dataset inspection notebook |
 | `notebooks/01_data_exploration_eurosat_ms.ipynb` | Multispectral exploration, spectral signatures, and optional NDVI analysis |
 | `notebooks/data_collection.ipynb` | Notebook for the EuroSAT download and project workflow |
@@ -199,7 +202,45 @@ model = build_model("resnet18", num_classes=len(class_names))
 
 The ResNet-18 builder attempts to load ImageNet weights and falls back to
 random initialization if the weights cannot be loaded. These utilities do not
-currently include a training loop or evaluation command.
+train a model on their own; use the training command below for a simple CNN
+training and evaluation run.
+
+## Train and track a model
+
+Download and extract EuroSAT RGB if it is not already available:
+
+```bash
+python src/download_eurosat.py
+```
+
+Train the default CNN for five epochs using the existing stratified data
+loaders. The script saves the checkpoint under `models/` and logs the final
+training, validation, and test metrics to a local MLflow experiment:
+
+```bash
+python train.py
+```
+
+Optional arguments let you select another supported model or adjust the
+training settings:
+
+```bash
+python train.py --model cnn --epochs 5 --batch-size 64 --learning-rate 0.001 --seed 42
+```
+
+MLflow uses the project-local `mlruns/` directory; it does not require a
+remote tracking server. The tracking module opts in to MLflow's local file
+store for recent MLflow versions. Install dependencies with
+`pip install -r requirements.txt`, then launch the local results browser:
+
+```bash
+mlflow ui --backend-store-uri ./mlruns
+```
+
+Open `http://127.0.0.1:5000` to view the `eurosat-land-cover-classification`
+experiment, its recorded parameters and metrics, and the saved checkpoint
+artifact. The proposed prediction API is described in
+[`API_DESIGN.md`](API_DESIGN.md); no API server is included.
 
 ## Tests
 

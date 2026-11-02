@@ -16,6 +16,7 @@ data/interim/*
 data/processed/*
 models/*
 !**/.gitkeep
+mlruns/
 .vscode/
 .idea/
 .DS_Store

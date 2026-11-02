@@ -40,6 +40,7 @@ def main():
             file=sys.stderr,
         )
         return 1
+    #(Pre-split Statistics)
 
     loaders = (
         ("Train", train_loader),
@@ -63,6 +64,7 @@ def main():
     print("\nClass counts before splitting:")
     for label, class_name in enumerate(class_names):
         print(f"  {class_name:24} {source_counts[label]:6}")
+        #(Split Summary & Deviations)
     print("\nSplit summary:")
     for split_name, loader in loaders:
         sample_count = len(loader.dataset)
@@ -95,7 +97,7 @@ def main():
             f"{counts_by_split['Validation'][label]:6} / "
             f"{counts_by_split['Test'][label]:6}"
         )
-
+#(Automated Integrity Checks)
     index_sets = {
         split_name: set(indices)
         for split_name, indices in indices_by_split.items()
@@ -146,6 +148,7 @@ def main():
             file=sys.stderr,
         )
         return 1
+    #(Exporting Manifest CSVs)
 
     manifest_dir = ROOT / "data" / "processed" / "splits" / f"seed_{RANDOM_SEED}"
     manifest_dir.mkdir(parents=True, exist_ok=True)
@@ -172,6 +175,6 @@ def main():
     print(f"Split manifests: {manifest_dir.relative_to(ROOT)}")
     return 0
 
-
+#start point
 if __name__ == "__main__":
     raise SystemExit(main())
