@@ -44,6 +44,52 @@ SEED = 42
 NUM_CHANNELS = 13
 
 
+def validate_checkpoint(
+    checkpoint,
+    model,
+    num_channels,
+    model_name="SmallCNN",
+    classes=None,
+):
+    """Reject a checkpoint from a different model/channel/class contract.
+
+    Guards against the SmallCNN/ResNet and RGB/13-band mix-up: checks the
+    metadata the training script saves (model name, channel count, class
+    list), then verifies tensor shapes as a fallback so a same-named but
+    differently-shaped checkpoint cannot load silently. Raises RuntimeError
+    with a clear message on any mismatch; returns None when compatible.
+    """
+    expected = {"model_name": model_name, "num_channels": num_channels}
+    for key, wanted in expected.items():
+        found = checkpoint.get(key)
+        if found is not None and found != wanted:
+            raise RuntimeError(
+                f"Checkpoint mismatch: {key}={found!r} but this evaluation "
+                f"builds {wanted!r}. Use a checkpoint trained with the same "
+                f"model and channel count."
+            )
+
+    saved_classes = checkpoint.get("classes")
+    if classes is not None and saved_classes is not None:
+        if list(saved_classes) != list(classes):
+            raise RuntimeError(
+                "Checkpoint mismatch: the saved class list does not match "
+                "the current dataset classes (order or count differs). "
+                "Class indices would be mapped to the wrong labels."
+            )
+
+    state_dict = checkpoint["model_state_dict"]
+    model_keys = model.state_dict()
+    for key, tensor in state_dict.items():
+        if key in model_keys and model_keys[key].shape != tensor.shape:
+            raise RuntimeError(
+                f"Checkpoint mismatch: tensor {key!r} has shape "
+                f"{tuple(tensor.shape)} but the model expects "
+                f"{tuple(model_keys[key].shape)}. The checkpoint likely "
+                f"comes from a different channel count or architecture."
+            )
+
+
 def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -109,6 +155,16 @@ def main():
             CHECKPOINT_PATH,
             map_location=device,
         )
+
+    # Guard against loading a checkpoint from a different model contract
+    # (the SmallCNN/ResNet and RGB/13-band mix-up).
+    validate_checkpoint(
+        checkpoint,
+        model,
+        num_channels=NUM_CHANNELS,
+        model_name="SmallCNN",
+        classes=classes,
+    )
 
     model.load_state_dict(checkpoint["model_state_dict"])
     model.eval()
