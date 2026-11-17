@@ -3,15 +3,16 @@
 Project 6 for the Digital Egypt Pioneers Initiative (DEPI), AI & Data Science
 Track, Round 2.
 
-This repository contains data exploration notebooks and starter utilities for
+This repository contains data exploration notebooks and utilities for
 land-cover classification with the EuroSAT dataset. It includes RGB and
 multispectral dataset download support, image preprocessing, class-stratified
-PyTorch data loaders, and CNN/ResNet-18 model definitions.
+PyTorch data loaders, CNN/ResNet-18 model definitions, and a complete
+multispectral training and evaluation pipeline.
 
-> **Project status:** The repository currently provides EuroSAT download,
-> exploration, and model-building components. The Sentinel-2 AOI definitions
-> are configuration only; automated Sentinel-2 scene search/download and a
-> complete model training/evaluation pipeline are not implemented here.
+> **Project status:** EuroSAT download, exploration, RGB training utilities,
+> and the multispectral preprocessing/training/evaluation pipeline are
+> available. The Sentinel-2 AOI definitions are configuration only; automated
+> Sentinel-2 scene search/download is not implemented here.
 
 ## Contents
 
@@ -20,17 +21,25 @@ PyTorch data loaders, and CNN/ResNet-18 model definitions.
 | `src/aoi_config.py` | Example Egypt areas of interest, Sentinel-2 band groups, land-cover labels, and scene-query preferences |
 | `src/download_eurosat.py` | Download and extract the EuroSAT RGB or multispectral archive |
 | `src/preprocessing.py` | Resize and normalize RGB or multispectral images into `.npy` files |
-| `src/dataset.py` | ImageFolder-based train, validation, and test data loaders |
+| `src/dataset.py` | ImageFolder-based train, validation, and test data loaders (RGB) |
+| `src/dataset_ms.py` | EuroSAT multispectral loader with reproducible saved train/validation/test splits |
+| `src/preprocessing_ms.py` | Multispectral preprocessing: dark-object haze removal, resize, and normalization for 13-band GeoTIFFs |
 | `src/split_data.py` | Run and validate the stratified split; write CSV manifests |
 | `src/model.py` | `SmallCNN` and `resnet18` model builders |
 | `src/tracking.py` | Log training parameters, metrics, and artifacts to local MLflow |
-| `train.py` | Train and evaluate the EuroSAT image classifier |
+| `train.py` | Train and evaluate the EuroSAT RGB image classifier |
+| `src/train.py` | Train the multispectral `SmallCNN` baseline with checkpoint selection and early stopping |
+| `src/evaluate.py` | Evaluate the saved multispectral checkpoint on the held-out test split |
+| `src/test_dataset.py` | Quick sanity check for the multispectral loaders and saved splits |
+| `src/plot_metrics.py` | Plot training curves from the multispectral metrics CSV |
 | `API_DESIGN.md` | Proposed prediction API endpoints and payload formats |
 | `notebooks/initial_inspection.ipynb` | Initial dataset inspection notebook |
 | `notebooks/01_data_exploration_eurosat_ms.ipynb` | Multispectral exploration, spectral signatures, and optional NDVI analysis |
+| `notebooks/02_data_exploration_eurosat_ms.ipynb` | Extended multispectral EDA: band audit, spectral signatures, NDVI, and summary tables |
 | `notebooks/data_collection.ipynb` | Notebook for the EuroSAT download and project workflow |
-| `outputs/` | Example exported tables and charts from dataset exploration |
-| `reports/figures/` | Example report figures |
+| `data/processed/splits.csv` | Saved multispectral train/validation/test assignments (paths relative to the dataset root) |
+| `outputs/` | Example exported tables and charts from dataset exploration, plus baseline training artifacts |
+| `reports/` | Report figures and tables produced by the exploration and evaluation notebooks/scripts |
 | `tests/` | Focused tests for the downloader and model builder |
 
 ## Requirements
@@ -38,11 +47,6 @@ PyTorch data loaders, and CNN/ResNet-18 model definitions.
 - Python 3.10 or newer
 - Packages listed in [`requirements.txt`](requirements.txt)
 - Jupyter Notebook or JupyterLab to run the notebooks
-
-The multispectral exploration notebook may also require `rasterio` to read the
-GeoTIFF images. Install it in your environment if you run the notebook cells
-that inspect multispectral image pixels. `rasterio` is also needed when
-preprocessing GeoTIFF files; it is optional for JPEG and PNG input.
 
 ## Setup
 
@@ -56,7 +60,7 @@ py -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 pip install -r requirements.txt
-pip install notebook rasterio
+pip install notebook
 ```
 
 **macOS or Linux**
@@ -66,11 +70,11 @@ python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 pip install -r requirements.txt
-pip install notebook rasterio
+pip install notebook
 ```
 
-`notebook` and `rasterio` are for interactive notebook work and are not listed
-as core application dependencies in `requirements.txt`.
+`notebook` is for interactive notebook work and is not listed as a core
+application dependency in `requirements.txt`.
 
 ## Download EuroSAT
 
@@ -103,7 +107,9 @@ python src/download_eurosat.py --kind ms --download_url https://example.com/Euro
 The default archives are hosted on
 [Zenodo record 7711810](https://zenodo.org/records/7711810). The downloader
 stores each ZIP beside its extraction directory. Downloaded data is not
-included in Git; the `.gitignore` excludes raw, interim, and processed data.
+included in Git; the `.gitignore` excludes raw, interim, and processed data
+(the saved multispectral split manifest `data/processed/splits.csv` is kept
+in Git on purpose so every run reuses the same split).
 
 ## Preprocess images
 
@@ -114,7 +120,7 @@ resized, normalized `.npy` arrays while preserving their folder structure:
 python src/preprocessing.py --input data/raw --output data/processed --size 64 --norm scale
 ```
 
-Use `--norm minmax` to stretch each image band to 0–1, or `--correction dos` to
+Use `--norm minmax` to stretch each image band to 0-1, or `--correction dos` to
 apply simple dark-object subtraction before resizing and normalization. The
 default scaling uses 255 for 8-bit images and 10,000 for Sentinel-2 reflectance.
 
@@ -136,6 +142,76 @@ data/raw/EuroSAT_RGB/
 Some archive versions may extract into an additional nested `EuroSAT_RGB/`
 directory. If that happens, pass the nested class-folder directory as
 `data_dir`.
+
+## Multispectral pipeline (13-band)
+
+The multispectral pipeline uses its own modules so the RGB utilities above
+stay untouched: `src/preprocessing_ms.py`, `src/dataset_ms.py`, `src/train.py`,
+and `src/evaluate.py`.
+
+### Expected multispectral dataset layout
+
+`src/dataset_ms.py` reads the 13-band GeoTIFFs using `rasterio`, or saved
+NumPy `.npy`/`.npz` arrays. It accepts a dataset root or a containing
+directory and searches nested directories for the class folders:
+
+```text
+data/raw/EuroSAT_MS/
+  EuroSAT_MS/
+    AnnualCrop/
+      image_1.tif
+    Forest/
+      image_2.tif
+    ...
+```
+
+If the archive extracts with an extra nested directory, `resolve_data_dir()`
+finds the directory containing the class folders. Raw reflectance values are
+divided by 10000 when loaded; values already in the 0-1 range are left
+unchanged.
+
+Preprocess the raw GeoTIFFs (optional; the loaders can also read `.tif`
+directly):
+
+```bash
+python src/preprocessing_ms.py
+```
+
+### Train
+
+```bash
+python -u -m src.train --data-dir data/raw/EuroSAT_MS
+```
+
+Training creates `data/processed/splits.csv` on the first run and reuses it
+afterward, so every teammate trains and evaluates on the same sample
+assignments. The repository ships the `splits.csv` used for the recorded
+baseline. The best checkpoint is selected by validation loss with early
+stopping and saved to `outputs/baseline/best_model.pth` together with
+`classes.json`, `metrics.csv`, and `metrics.json`.
+
+Sanity-check the loaders and saved splits without training:
+
+```bash
+python src/test_dataset.py
+```
+
+### Evaluate
+
+```bash
+python -u -m src.evaluate
+```
+
+Evaluation loads the saved checkpoint and the same `splits.csv`, then writes
+`evaluation_summary.json`, `classification_report.csv`, and a confusion
+matrix under `outputs/evaluation/`. Plot the training curves with
+`python src/plot_metrics.py`.
+
+> **Baseline metrics:** the artifacts under `outputs/baseline/` and
+> `outputs/evaluation/` were produced during earlier development on the
+> previous working repository and were copied here for continuity. They were
+> not re-trained or re-verified against this repository; treat the recorded
+> numbers as historical until a teammate re-runs training locally.
 
 ## Explore the data
 
@@ -205,7 +281,7 @@ random initialization if the weights cannot be loaded. These utilities do not
 train a model on their own; use the training command below for a simple CNN
 training and evaluation run.
 
-## Train and track a model
+## Train and track a model (RGB)
 
 Download and extract EuroSAT RGB if it is not already available:
 
@@ -253,9 +329,21 @@ python -m pytest
 ## Outputs
 
 The repository includes example exploration outputs, such as spectral
-signature and NDVI tables and plots. They are illustrative results already
-stored in the repository; re-running the notebooks may replace or regenerate
-them from the local dataset.
+signature and NDVI tables and plots, plus the recorded multispectral baseline
+and evaluation artifacts described above. They are illustrative results
+already stored in the repository; re-running the notebooks or scripts may
+replace or regenerate them from the local dataset.
+
+## Known limitations
+
+- The repository root still contains two historical git links
+  (`satellite_empty` and `NHA-5-151`) left over from earlier development.
+  They are not submodules anyone should initialize, and they cannot be
+  removed through the GitHub web interface; ignore them until a maintainer
+  removes them with git locally.
+- The recorded baseline metrics were copied from the previous development
+  repository (see the note under "Evaluate") and are not freshly verified
+  here.
 
 ## Data and citation
 
