@@ -139,6 +139,59 @@ def save_json(path: Path, payload) -> None:
         json.dump(payload, file, indent=2, ensure_ascii=False)
 
 
+def log_run_to_mlflow(args, summary, history, device, artifact_paths):
+    """Log one finished multispectral run to the shared local MLflow store.
+
+    Uses the same src.tracking.log_experiment and experiment as the RGB path
+    (root train.py). A "pipeline" param separates the two kinds of runs.
+    Tracking is best effort: a tracking failure is reported loudly but does
+    not discard a finished training run (checkpoint and metrics are saved).
+    """
+    try:
+        from src.tracking import log_experiment
+
+        last = history[-1]
+        log_experiment(
+            params={
+                "pipeline": "multispectral",
+                "model": summary["model"],
+                "data_dir": summary["dataset"],
+                "num_channels": args.num_channels,
+                "epochs": args.epochs,
+                "batch_size": args.batch_size,
+                "learning_rate": args.learning_rate,
+                "weight_decay": args.weight_decay,
+                "patience": args.patience,
+                "min_delta": args.min_delta,
+                "optimizer": "AdamW",
+                "loss_function": "CrossEntropyLoss",
+                "seed": args.seed,
+                "num_classes": summary["num_classes"],
+                "device": str(device),
+            },
+            metrics={
+                # Last completed epoch, same names as the RGB path.
+                "train_loss": last["train_loss"],
+                "train_accuracy": last["train_accuracy"],
+                # Best checkpoint (lowest validation loss) and its test result.
+                "validation_loss": summary["best_validation_loss"],
+                "validation_accuracy": summary["best_validation_accuracy"],
+                "test_loss": summary["test_loss"],
+                "test_accuracy": summary["test_accuracy"],
+                "best_epoch": summary["best_epoch"],
+                "epochs_completed": summary["epochs_completed"],
+            },
+            artifact_paths=artifact_paths,
+        )
+        print("MLflow       : run logged", flush=True)
+    except Exception as error:  # noqa: BLE001 - never lose a finished run
+        print(
+            f"WARNING: MLflow logging failed ({error!r}). "
+            "Training results were still saved to the output directory.",
+            flush=True,
+        )
+
+
 def parse_args():
     """Read command-line arguments."""
     parser = argparse.ArgumentParser(
@@ -167,6 +220,11 @@ def parse_args():
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--num-workers", type=int, default=0)
     parser.add_argument("--num-channels", type=int, default=13)
+    parser.add_argument(
+        "--no-tracking",
+        action="store_true",
+        help="Do not log this run to MLflow.",
+    )
 
     parser.add_argument(
         "--device",
@@ -455,6 +513,20 @@ def main():
     }
 
     save_json(summary_path, summary)
+
+    if not args.no_tracking:
+        log_run_to_mlflow(
+            args,
+            summary,
+            history,
+            device,
+            artifact_paths=[
+                checkpoint_path,
+                summary_path,
+                history_path,
+                output_dir / "classes.json",
+            ],
+        )
 
     print("-" * 72, flush=True)
     print(f"Best epoch   : {best_epoch}", flush=True)
