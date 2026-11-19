@@ -1,0 +1,2 @@
+architecture,pretrained,features_frozen,accuracy,precision_macro,recall_macro,f1_macro,precision_weighted,recall_weighted,f1_weighted,training_seconds,total_parameters,trainable_parameters,model_size_mb,checkpoint
+resnet18-frozen,True,True,0.9256790123456791,0.9234740084681115,0.9226888888888889,0.9220408053132495,0.9265805004413059,0.9256790123456791,0.9251979075908439,4954.856386699947,11181642,5130,42.72986888885498,C:\Users\Dell\NHA-5-151\NHA-5-151-m2-t06\outputs\architecture_comparison\transfer_resnet18_frozen\run_20261119T004031Z\resnet18-frozen.pth
