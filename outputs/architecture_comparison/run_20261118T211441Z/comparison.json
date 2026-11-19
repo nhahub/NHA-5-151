@@ -1,0 +1,293 @@
+[
+  {
+    "architecture": "cnn",
+    "model_name": "cnn",
+    "pretrained": false,
+    "features_frozen": false,
+    "accuracy": 0.8770370370370371,
+    "precision_macro": 0.883948832355844,
+    "recall_macro": 0.8734222222222222,
+    "f1_macro": 0.8737293948761528,
+    "precision_weighted": 0.8871554343388374,
+    "recall_weighted": 0.8770370370370371,
+    "f1_weighted": 0.877413275704245,
+    "test_loss": 0.3598565098091408,
+    "training_seconds": 1778.5137519999407,
+    "total_parameters": 289194,
+    "trainable_parameters": 289194,
+    "model_size_mb": 1.1184301376342773,
+    "best_epoch": 5,
+    "best_validation_loss": 0.3608794374377639,
+    "classes": [
+      "AnnualCrop",
+      "Forest",
+      "HerbaceousVegetation",
+      "Highway",
+      "Industrial",
+      "Pasture",
+      "PermanentCrop",
+      "Residential",
+      "River",
+      "SeaLake"
+    ],
+    "per_class_metrics": {
+      "AnnualCrop": {
+        "precision": 0.811284046692607,
+        "recall": 0.9266666666666666,
+        "f1-score": 0.8651452282157677,
+        "support": 450.0
+      },
+      "Forest": {
+        "precision": 0.9838337182448037,
+        "recall": 0.9466666666666667,
+        "f1-score": 0.9648924122310306,
+        "support": 450.0
+      },
+      "HerbaceousVegetation": {
+        "precision": 0.7957198443579766,
+        "recall": 0.9088888888888889,
+        "f1-score": 0.8485477178423236,
+        "support": 450.0
+      },
+      "Highway": {
+        "precision": 0.7142857142857143,
+        "recall": 0.8666666666666667,
+        "f1-score": 0.7831325301204819,
+        "support": 375.0
+      },
+      "Industrial": {
+        "precision": 0.9835526315789473,
+        "recall": 0.7973333333333333,
+        "f1-score": 0.8807069219440353,
+        "support": 375.0
+      },
+      "Pasture": {
+        "precision": 0.8265895953757225,
+        "recall": 0.9533333333333334,
+        "f1-score": 0.8854489164086687,
+        "support": 300.0
+      },
+      "PermanentCrop": {
+        "precision": 0.9107142857142857,
+        "recall": 0.68,
+        "f1-score": 0.7786259541984732,
+        "support": 375.0
+      },
+      "Residential": {
+        "precision": 0.9782608695652174,
+        "recall": 0.9,
+        "f1-score": 0.9375,
+        "support": 450.0
+      },
+      "River": {
+        "precision": 0.8688046647230321,
+        "recall": 0.7946666666666666,
+        "f1-score": 0.83008356545961,
+        "support": 375.0
+      },
+      "SeaLake": {
+        "precision": 0.9664429530201343,
+        "recall": 0.96,
+        "f1-score": 0.9632107023411371,
+        "support": 450.0
+      }
+    },
+    "checkpoint": "C:\\Users\\Dell\\NHA-5-151\\NHA-5-151-m2-t06\\outputs\\architecture_comparison\\run_20261118T211441Z\\cnn.pth",
+    "history": "C:\\Users\\Dell\\NHA-5-151\\NHA-5-151-m2-t06\\outputs\\architecture_comparison\\run_20261118T211441Z\\cnn_history.csv",
+    "confusion_matrix": "C:\\Users\\Dell\\NHA-5-151\\NHA-5-151-m2-t06\\outputs\\architecture_comparison\\run_20261118T211441Z\\cnn_confusion_matrix.csv"
+  },
+  {
+    "architecture": "resnet18",
+    "model_name": "resnet18",
+    "pretrained": false,
+    "features_frozen": false,
+    "accuracy": 0.7081481481481482,
+    "precision_macro": 0.7518912471681547,
+    "recall_macro": 0.7081999999999999,
+    "f1_macro": 0.7032568543768287,
+    "precision_weighted": 0.7630597882964948,
+    "recall_weighted": 0.7081481481481482,
+    "f1_weighted": 0.7090083935033463,
+    "test_loss": 0.8278069980056197,
+    "training_seconds": 2008.7878592000343,
+    "total_parameters": 11181642,
+    "trainable_parameters": 11181642,
+    "model_size_mb": 42.72901439666748,
+    "best_epoch": 4,
+    "best_validation_loss": 0.873333810435401,
+    "classes": [
+      "AnnualCrop",
+      "Forest",
+      "HerbaceousVegetation",
+      "Highway",
+      "Industrial",
+      "Pasture",
+      "PermanentCrop",
+      "Residential",
+      "River",
+      "SeaLake"
+    ],
+    "per_class_metrics": {
+      "AnnualCrop": {
+        "precision": 0.6446153846153846,
+        "recall": 0.9311111111111111,
+        "f1-score": 0.7618181818181818,
+        "support": 450.0
+      },
+      "Forest": {
+        "precision": 0.9632352941176471,
+        "recall": 0.5822222222222222,
+        "f1-score": 0.7257617728531855,
+        "support": 450.0
+      },
+      "HerbaceousVegetation": {
+        "precision": 0.614190687361419,
+        "recall": 0.6155555555555555,
+        "f1-score": 0.6148723640399556,
+        "support": 450.0
+      },
+      "Highway": {
+        "precision": 0.46677215189873417,
+        "recall": 0.7866666666666666,
+        "f1-score": 0.5858987090367428,
+        "support": 375.0
+      },
+      "Industrial": {
+        "precision": 0.9303621169916435,
+        "recall": 0.8906666666666667,
+        "f1-score": 0.9100817438692098,
+        "support": 375.0
+      },
+      "Pasture": {
+        "precision": 0.5379464285714286,
+        "recall": 0.8033333333333333,
+        "f1-score": 0.6443850267379679,
+        "support": 300.0
+      },
+      "PermanentCrop": {
+        "precision": 0.6028169014084507,
+        "recall": 0.5706666666666667,
+        "f1-score": 0.5863013698630137,
+        "support": 375.0
+      },
+      "Residential": {
+        "precision": 0.9701492537313433,
+        "recall": 0.5777777777777777,
+        "f1-score": 0.724233983286908,
+        "support": 450.0
+      },
+      "River": {
+        "precision": 0.8324022346368715,
+        "recall": 0.3973333333333333,
+        "f1-score": 0.5379061371841155,
+        "support": 375.0
+      },
+      "SeaLake": {
+        "precision": 0.9564220183486238,
+        "recall": 0.9266666666666666,
+        "f1-score": 0.9413092550790068,
+        "support": 450.0
+      }
+    },
+    "checkpoint": "C:\\Users\\Dell\\NHA-5-151\\NHA-5-151-m2-t06\\outputs\\architecture_comparison\\run_20261118T211441Z\\resnet18.pth",
+    "history": "C:\\Users\\Dell\\NHA-5-151\\NHA-5-151-m2-t06\\outputs\\architecture_comparison\\run_20261118T211441Z\\resnet18_history.csv",
+    "confusion_matrix": "C:\\Users\\Dell\\NHA-5-151\\NHA-5-151-m2-t06\\outputs\\architecture_comparison\\run_20261118T211441Z\\resnet18_confusion_matrix.csv"
+  },
+  {
+    "architecture": "vgg16",
+    "model_name": "vgg16",
+    "pretrained": false,
+    "features_frozen": false,
+    "accuracy": 0.6545679012345679,
+    "precision_macro": 0.6047354703387678,
+    "recall_macro": 0.6288,
+    "f1_macro": 0.5978297605471189,
+    "precision_weighted": 0.6187972978357368,
+    "recall_weighted": 0.6545679012345679,
+    "f1_weighted": 0.6175850415470232,
+    "test_loss": 0.8918576771535991,
+    "training_seconds": 7726.081948600011,
+    "total_parameters": 14982474,
+    "trainable_parameters": 14982474,
+    "model_size_mb": 57.162537574768066,
+    "best_epoch": 5,
+    "best_validation_loss": 0.9004564055690059,
+    "classes": [
+      "AnnualCrop",
+      "Forest",
+      "HerbaceousVegetation",
+      "Highway",
+      "Industrial",
+      "Pasture",
+      "PermanentCrop",
+      "Residential",
+      "River",
+      "SeaLake"
+    ],
+    "per_class_metrics": {
+      "AnnualCrop": {
+        "precision": 0.7555066079295154,
+        "recall": 0.7622222222222222,
+        "f1-score": 0.7588495575221239,
+        "support": 450.0
+      },
+      "Forest": {
+        "precision": 0.6415094339622641,
+        "recall": 0.9066666666666666,
+        "f1-score": 0.7513812154696132,
+        "support": 450.0
+      },
+      "HerbaceousVegetation": {
+        "precision": 0.38513513513513514,
+        "recall": 0.76,
+        "f1-score": 0.5112107623318386,
+        "support": 450.0
+      },
+      "Highway": {
+        "precision": 0.5609065155807366,
+        "recall": 0.528,
+        "f1-score": 0.5439560439560439,
+        "support": 375.0
+      },
+      "Industrial": {
+        "precision": 0.896640826873385,
+        "recall": 0.9253333333333333,
+        "f1-score": 0.910761154855643,
+        "support": 375.0
+      },
+      "Pasture": {
+        "precision": 0.38405797101449274,
+        "recall": 0.35333333333333333,
+        "f1-score": 0.3680555555555556,
+        "support": 300.0
+      },
+      "PermanentCrop": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 375.0
+      },
+      "Residential": {
+        "precision": 0.85625,
+        "recall": 0.9133333333333333,
+        "f1-score": 0.8838709677419355,
+        "support": 450.0
+      },
+      "River": {
+        "precision": 0.6434108527131783,
+        "recall": 0.22133333333333333,
+        "f1-score": 0.32936507936507936,
+        "support": 375.0
+      },
+      "SeaLake": {
+        "precision": 0.9239373601789709,
+        "recall": 0.9177777777777778,
+        "f1-score": 0.9208472686733556,
+        "support": 450.0
+      }
+    },
+    "checkpoint": "C:\\Users\\Dell\\NHA-5-151\\NHA-5-151-m2-t06\\outputs\\architecture_comparison\\run_20261118T211441Z\\vgg16.pth",
+    "history": "C:\\Users\\Dell\\NHA-5-151\\NHA-5-151-m2-t06\\outputs\\architecture_comparison\\run_20261118T211441Z\\vgg16_history.csv",
+    "confusion_matrix": "C:\\Users\\Dell\\NHA-5-151\\NHA-5-151-m2-t06\\outputs\\architecture_comparison\\run_20261118T211441Z\\vgg16_confusion_matrix.csv"
+  }
+]
