@@ -9,3 +9,4 @@ torch
 torchvision>=0.13
 mlflow
 rasterio
+joblib
