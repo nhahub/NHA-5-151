@@ -1,0 +1,3 @@
+Model,Input Channels,Test Accuracy,Test Loss,Training Time (seconds),Best Epoch,Dimensionality Reduction
+Baseline CNN,13,0.9385185185185185,0.18618599915210113,5248.98,5,0%
+PCA CNN,4,0.9748148148148148,0.07376550597618736,6324.073746919632,21,69.23%

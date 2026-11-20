@@ -1,0 +1,12 @@
+{
+    "test_accuracy": 0.9748148148148148,
+    "test_loss": 0.07376550597618736,
+    "best_epoch": 21,
+    "best_validation_loss": 0.0789027164944873,
+    "epochs_completed": 26,
+    "training_seconds": 6324.073746919632,
+    "input_channels": 4,
+    "explained_variance": 0.95151815,
+    "dimensionality_reduction": 0.6923,
+    "device": "cpu"
+}
