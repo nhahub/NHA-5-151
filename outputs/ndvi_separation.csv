@@ -1,0 +1,5 @@
+pair,median_1,median_2,median_difference,AUC,best_threshold,balanced_accuracy
+Forest vs AnnualCrop,0.724,0.353,0.371,0.96,0.601,0.921
+Forest vs PermanentCrop,0.724,0.346,0.378,0.988,0.598,0.957
+Pasture vs AnnualCrop,0.671,0.353,0.318,0.913,0.519,0.85
+Pasture vs PermanentCrop,0.671,0.346,0.325,0.951,0.533,0.873
