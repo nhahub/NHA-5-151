@@ -296,7 +296,12 @@ class EuroSATMSDataset(Dataset):
 
             if torch.rand(()) < 0.5:
                 image = torch.flip(image, dims=[1])
+            # Random 90-degree rotation (0, 90, 180, or 270 degrees)
+            k = int(torch.randint(0, 4, ()).item())
+            if k > 0:
+                image = torch.rot90(image, k=k, dims=[1, 2])
 
+            image = image.contiguous()
         return image, torch.tensor(label, dtype=torch.long)
 
 
