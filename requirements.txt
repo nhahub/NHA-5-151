@@ -9,4 +9,6 @@ torch
 torchvision>=0.13
 mlflow
 rasterio
+pytest
+ipykernel
 joblib

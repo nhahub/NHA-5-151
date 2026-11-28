@@ -21,3 +21,5 @@ mlruns/
 .vscode/
 .idea/
 .DS_Store
+.pytest_cache/
+*.egg-info/

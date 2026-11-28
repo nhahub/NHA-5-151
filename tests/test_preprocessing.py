@@ -1,65 +1,109 @@
 import numpy as np
-from PIL import Image
+import pytest
 
-from src.preprocessing import (
-    dark_object_subtraction,
-    load_image,
-    main,
-    normalize,
-    resize_image,
-)
+rasterio = pytest.importorskip("rasterio")
+
+from src import preprocessing  # noqa: E402
 
 
-def test_cli_saves_preprocessed_image_in_matching_folder(tmp_path, monkeypatch):
+def write_tif(path, array):
+    """Write a (bands, height, width) array as a GeoTIFF."""
+    bands, height, width = array.shape
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with rasterio.open(
+        path,
+        "w",
+        driver="GTiff",
+        height=height,
+        width=width,
+        count=bands,
+        dtype="float32",
+    ) as dst:
+        dst.write(array.astype(np.float32))
+
+
+def test_load_image_returns_height_width_channels(tmp_path):
+    path = tmp_path / "sample.tif"
+    write_tif(path, np.full((13, 8, 10), 500, dtype=np.float32))
+
+    image = preprocessing.load_image(path)
+
+    assert image.shape == (8, 10, 13)
+    assert image.dtype == np.float32
+
+
+def test_resize_changes_size_and_keeps_channels():
+    image = np.ones((8, 10, 13), dtype=np.float32)
+
+    resized = preprocessing.resize(image, 4)
+
+    assert resized.shape == (4, 4, 13)
+
+
+def test_resize_returns_same_image_when_size_matches():
+    image = np.ones((4, 4, 3), dtype=np.float32)
+
+    resized = preprocessing.resize(image, 4)
+
+    assert resized.shape == (4, 4, 3)
+    np.testing.assert_array_equal(resized, image)
+
+
+def test_normalize_scales_and_clips():
+    image = np.array([[[5000.0, 20000.0, -10.0]]], dtype=np.float32)
+
+    normalized = preprocessing.normalize(image)
+
+    np.testing.assert_allclose(normalized[0, 0], [0.5, 1.0, 0.0])
+
+
+def test_remove_haze_subtracts_and_never_goes_negative():
+    image = np.array([[[10.0, 3.0]]], dtype=np.float32)
+    haze = np.array([4.0, 5.0], dtype=np.float32)
+
+    result = preprocessing.remove_haze(image, haze)
+
+    np.testing.assert_allclose(result[0, 0], [6.0, 0.0])
+
+
+def test_find_haze_returns_one_value_per_band(tmp_path):
+    path = tmp_path / "a.tif"
+    write_tif(path, np.full((13, 8, 8), 100, dtype=np.float32))
+
+    haze = preprocessing.find_haze([path])
+
+    assert haze.shape == (13,)
+    np.testing.assert_allclose(haze, 100)
+
+
+def test_preprocess_output_shape_dtype_and_range(monkeypatch):
+    monkeypatch.setattr(preprocessing, "IMAGE_SIZE", 4)
+    image = np.full((8, 8, 13), 5000, dtype=np.float32)
+
+    result = preprocessing.preprocess(image)
+
+    assert result.shape == (4, 4, 13)
+    assert result.dtype == np.float32
+    assert result.min() >= 0.0 and result.max() <= 1.0
+
+
+def test_main_saves_npy_in_matching_class_folder(tmp_path, monkeypatch):
     input_dir = tmp_path / "raw"
-    image_path = input_dir / "Forest" / "sample.png"
-    image_path.parent.mkdir(parents=True)
-    Image.fromarray(np.full((8, 10, 3), 128, dtype=np.uint8)).save(image_path)
     output_dir = tmp_path / "processed"
-    monkeypatch.setattr(
-        "sys.argv",
-        [
-            "preprocessing.py",
-            "--input",
-            str(input_dir),
-            "--output",
-            str(output_dir),
-            "--size",
-            "4",
-        ],
+    write_tif(
+        input_dir / "Forest" / "sample.tif",
+        np.full((13, 8, 8), 5000, dtype=np.float32),
     )
+    monkeypatch.setattr(preprocessing, "INPUT_FOLDER", str(input_dir))
+    monkeypatch.setattr(preprocessing, "OUTPUT_FOLDER", str(output_dir))
+    monkeypatch.setattr(preprocessing, "IMAGE_SIZE", 4)
+    monkeypatch.setattr(preprocessing, "REMOVE_HAZE", False)
 
-    main()
+    preprocessing.main()
 
     output_path = output_dir / "Forest" / "sample.npy"
     assert output_path.exists()
     processed = np.load(output_path)
-    assert processed.shape == (4, 4, 3)
+    assert processed.shape == (4, 4, 13)
     assert processed.dtype == np.float32
-
-
-def test_load_resize_and_scale_rgb_image(tmp_path):
-    path = tmp_path / "sample.png"
-    Image.fromarray(np.full((8, 10, 3), 128, dtype=np.uint8)).save(path)
-
-    image, scale = load_image(path)
-    resized = resize_image(image, 4)
-    normalized = normalize(resized, scale, "scale")
-
-    assert resized.shape == (4, 4, 3)
-    assert normalized.dtype == np.float32
-    np.testing.assert_allclose(normalized, 128 / 255)
-
-
-def test_minmax_normalization_and_dark_object_subtraction():
-    image = np.array(
-        [[[2.0, 4.0], [4.0, 8.0]], [[6.0, 12.0], [8.0, 16.0]]],
-        dtype=np.float32,
-    )
-
-    corrected = dark_object_subtraction(image, percentile=0)
-    normalized = normalize(corrected, scale=1, method="minmax")
-
-    np.testing.assert_allclose(corrected.min(axis=(0, 1)), 0)
-    np.testing.assert_allclose(normalized.min(axis=(0, 1)), 0)
-    np.testing.assert_allclose(normalized.max(axis=(0, 1)), 1)
+    np.testing.assert_allclose(processed, 0.5)
